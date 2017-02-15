@@ -15,3 +15,4 @@ Data/submit.csv
 random_seed_59035gridpt_number0_submit.csv
 Data/train/*nc
 Data/test/*nc
+Code/*pyc
