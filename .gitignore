@@ -1,0 +1,17 @@
+model0avg/
+model1avg/
+model2avg/
+model3avg/
+model4avg/
+OLD/
+xfer.sh
+runxgb.sh
+getsubmits.sh
+login_aws.sh
+.DS_Store
+Code/visualize_output.py
+Data/submit.csv
+# Data/random_seed_59035gridpt_number0_submit.csv
+random_seed_59035gridpt_number0_submit.csv
+Data/train/*nc
+Data/test/*nc
