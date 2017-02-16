@@ -1,22 +1,8 @@
-import sys
 import glob
 import os
-import random
 import argparse
 import numpy as np
 import pandas as pd
-import pickle
-import matplotlib.pyplot as plt
-import xgboost as xgb
-from sklearn.cross_validation import train_test_split
-from sklearn.metrics import mean_squared_error
-from sklearn.preprocessing import MinMaxScaler
-import netCDF4 as nc
-from preprocess_global_weather_data import get_gefs_features
-from preprocess_global_weather_data import mae
-from preprocess_global_weather_data import pd_chunk_csv
-from preprocess_global_weather_data import create_feature_map
-from grid_search_xgboost import grid_search_xgboost
 from assemble_data import assemble_data
 from normalize_data import normalize_data
 from fit_data import fit_data
@@ -25,6 +11,9 @@ import settings
 
 if __name__ == "__main__":
 
+    #--------------------------------------
+    # Set user parameters from command line
+    #---------------------------------------
     parser = argparse.ArgumentParser()
     argsall = ['--outdir', '--modelnum', '--numclosegrid', '--debug',
                '--method', '--numrandstate', '--tag']
@@ -32,7 +21,7 @@ if __name__ == "__main__":
         parser.add_argument(ar)
     args = parser.parse_args()
 
-    out_dir = settings.ROOT_DIR + str(args.outdir) + '/'
+    settings.OUTDIR = settings.ROOT_DIR + str(args.outdir) + '/'
 
     # Load in the GEFS files to be used
     train_gefs_files = np.sort(glob.glob(settings.DATA_DIR_TRAIN + '*nc'))
@@ -41,9 +30,9 @@ if __name__ == "__main__":
     # Load in station info
     station_info = pd.read_csv(settings.STATION_INFO_CSV)
 
-    if os.path.isdir(out_dir) is False:
-        print 'Making output directory ' + out_dir
-        os.mkdir(out_dir)
+    if os.path.isdir(settings.OUTDIR) is False:
+        print 'Making output directory ' + settings.OUTDIR
+        os.mkdir(settings.OUTDIR)
     print 'Saving to directory ' + str(args.outdir)
 
     # Specify which model to use
@@ -68,7 +57,7 @@ if __name__ == "__main__":
     print 'Number of random states = ' + str(nrand)
 
     # Name of files that will be saved
-    out_tag_name = out_dir + args.tag
+    out_tag_name = args.tag
 
 
     #---------------
@@ -84,13 +73,15 @@ if __name__ == "__main__":
     print 'Training sizes:'
     print trainX.shape, trainY.shape
 
-
-    # 2. Normalize the weather variables, use
-    # both train and testing X data for the
-    # X normalization to fully encompass the range of X values.
+    # 2. Normalize the features, use both train and testing
+    # data for the feature normalization to fully encompass the
+    # range of X values.
     trainX, trainY, testX, xcoeff, ycoeff = normalize_data(trainX, trainY,
-                                                           testX, out_dir)
-
-    # 3. Fit the data
-    fit_data(trainX, trainY, nrand, out_dir, ycoeff, testX)
+                                                           testX)
+    # 3. Fit the data. Here we use our supervised learning model
+    # to find statistically significant correlations between the features
+    # (the 12, 15, 18, 21, 24 hours ahead weather forecast) and the prediction
+    # variable (the actual total solar energy produced at a given Mesonet
+    # station).
+    fit_data(trainX, trainY, nrand, ycoeff, testX, out_tag_name)
     print 'Finished.'

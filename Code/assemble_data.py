@@ -1,22 +1,10 @@
-import sys
-import glob
 import os
-import random
-import argparse
 import numpy as np
 import pandas as pd
 import pickle
-import matplotlib.pyplot as plt
-import xgboost as xgb
-from sklearn.cross_validation import train_test_split
-from sklearn.metrics import mean_squared_error
-from sklearn.preprocessing import MinMaxScaler
-import netCDF4 as nc
 from preprocess_global_weather_data import get_gefs_features
-from preprocess_global_weather_data import mae
 from preprocess_global_weather_data import pd_chunk_csv
 from preprocess_global_weather_data import create_feature_map
-from grid_search_xgboost import grid_search_xgboost
 import settings
 
 
@@ -34,14 +22,15 @@ def assemble_data(out_tag_name, meth, debug, nclose, station_info, model_num,
     :param model_num: Which global weather model to use.
     :return:
     """
-    if os.path.isfile(out_tag_name+'.pickle'):
-        print 'LOADING TRAINING DATA...'
-        with open(out_tag_name + '.pickle', 'r') as f:
+    if os.path.isfile(settings.OUTDIR + out_tag_name+'.pickle'):
+        print 'Loading up the previously assembled weather data...'
+        with open(settings.OUTDIR + out_tag_name + '.pickle', 'r') as f:
             trainY, statnums, longs, lats, elevs, date, meth, \
             debug = pickle.load(f)
-            trainX = pd_chunk_csv(out_tag_name + '.csv', chunksize=10000)
+            trainX = pd_chunk_csv(settings.OUTDIR + out_tag_name + '.csv',
+                                  chunksize=10000)
     else:
-        print 'GETTING DATA FROM .NC FILES...'
+        print 'Assembling the weather data..'
         trainY = pd.read_csv(settings.PREDICT_CSV)
         date = np.tile(trainY.values[:, 0], settings.NUM_STATIONS)
         # date is read in, get rid of it!
@@ -62,36 +51,34 @@ def assemble_data(out_tag_name, meth, debug, nclose, station_info, model_num,
         feats = feats[2:]
 
         # Output features and create feature map.
-        create_feature_map(settings.FEATURE_NAMES_FILE, feats)
+        create_feature_map(settings.OUTDIR + settings.FEATURE_NAMES_FILE, feats)
 
-        with open(out_tag_name + '.pickle', 'w') as f:
+        with open(settings.OUTDIR + out_tag_name + '.pickle', 'w') as f:
             pickle.dump([trainY, statnums, longs, lats, elevs, date, meth,
                          debug], f)
-        pd.DataFrame(trainX, columns=feats).to_csv(out_tag_name + '.csv',
-                                                       index=False)
+        pd.DataFrame(trainX, columns=feats).to_csv(settings.OUTDIR
+                                                   + out_tag_name + '.csv',
+                                                   index=False)
     # Do the same for the testing data.
-    if os.path.isfile(out_tag_name + '_test.pickle'):
+    if os.path.isfile(settings.OUTDIR + out_tag_name + '_test.pickle'):
         print 'No need to load test data.'
-        testX = pd_chunk_csv(out_tag_name + '_test.csv', chunksize=10000)
+        testX = pd_chunk_csv(settings.OUTDIR + out_tag_name + '_test.csv',
+                             chunksize=10000)
     else:
         print 'Getting data from files...'
-        testX, feats = get_gefs_features(model_num, nclose,
-                                             test_gefs_files,
-                                             station_info, method=meth,
-                                             debug=debug)
-        statnums_t = testX[:, 0]
-        elevs_t = testX[:, 1]
-        longs_t = testX[:, 2]
-        lats_t = testX[:, 3]
-
+        testX, feats = get_gefs_features(model_num, nclose, test_gefs_files,
+                                         station_info, method=meth, debug=debug)
+        statnums = testX[:, 0]
+        elevs = testX[:, 1]
+        longs = testX[:, 2]
+        lats = testX[:, 3]
         testX = testX[:, 2:]
-        date_t = pd.read_csv(settings.SAMPLE_SUBMISSION_CSV,
-                             usecols=(0,)).values.flatten()
+        date = pd.read_csv(settings.SAMPLE_SUBMISSION_CSV,
+                           usecols=(0,)).values.flatten()
         feats = feats[2:]
 
-        with open(out_tag_name + '_test.pickle', 'w') as f:
-            pickle.dump([statnums_t, longs_t, lats_t, elevs_t, date_t, meth,
-                         debug], f)
-        pd.DataFrame(testX, columns=feats).to_csv(out_tag_name + '_test.csv',
-                                                  index=False)
+        with open(settings.OUTDIR + out_tag_name + '_test.pickle', 'w') as f:
+            pickle.dump([statnums, longs, lats, elevs, date, meth, debug], f)
+        pd.DataFrame(testX, columns=feats).to_csv(settings.OUTDIR + out_tag_name
+                                                  + '_test.csv', index=False)
     return trainX, trainY, testX

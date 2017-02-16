@@ -1,12 +1,10 @@
 import os
-import sys
 import numpy as np
 import netCDF4 as nc
 import pandas as pd
 from geopy.distance import vincenty
-from date_functions import doy, get_month, get_doy
-import time
-import settings
+from date_functions import get_doy
+
 
 def get_max_doy(doy, feature):
     out_feature = np.zeros(feature.shape[0])
@@ -18,6 +16,32 @@ def get_max_doy(doy, feature):
 
         out_feature[daysid] = np.mean(feature[daysid[idgood]])
     return out_feature
+
+
+def mad_percent(predictions, targets):
+    """
+    Return the median absolute deviation.
+    :param predictions:
+    :param targets:
+    :return:
+    """
+    return np.median(np.abs(predictions - targets) / targets) * 100.00
+
+
+def mae_percent(predictions, targets):
+    """
+    Mean absolute error (MAE).
+    The objective function for both XGBoost
+    and the Neural Networks to compare
+    predicted solar energy to actual solar energy measured.
+    :param predictions:
+    :param targets:
+    :return: mean absolute error
+    """
+    print np.abs(predicts - targets) / targets
+    return np.mean(np.abs(predictions - targets) / targets) * 100.00
+
+
 
 def mae(predictions, targets):
     """
@@ -40,8 +64,8 @@ def pd_chunk_csv(fname, chunksize):
     :param chunksize: size of data chunk to loop over.
     :return:
     """
-    iter_csv = pd.read_csv(fname, dtype=np.float32, engine='c',
-                           iterator=True, chunksize=chunksize)
+    iter_csv = pd.read_csv(fname, dtype=np.float32, engine='c', iterator=True,
+                           chunksize=chunksize)
     list_of_chunks = [chunk for chunk in iter_csv]
     ret_arr = None
     for i, chk in enumerate(list_of_chunks):
@@ -82,7 +106,8 @@ def load_gefs(input_file):
         # Get the latitude and longitudes
         lat, lon = np.meshgrid(din.variables['lat'][:], din.variables['lon'][:])
         lat, lon = lat.transpose().flatten(), lon.transpose().flatten()
-        # Subtract 360 from the longitude since its in degrees from prime meridian
+        # Subtract 360 from the longitude since its in degrees from prime
+        # meridian
         lon = lon - 360.000
         # Get the dates
         dates = din.variables['intTime'][:]/100
@@ -155,16 +180,13 @@ def add_feature(xdata, val, numfeats):
     return np.hstack((feat.reshape(numfeats, 1), xdata))
 
 
-
-def get_gefs_features(modelnum, num_closest_grid, ncfiles,
+def get_gefs_features(model_num, num_closest_grid, ncfiles,
                       station_info, method, debug=False):
     """
-    This function loops over every solar station, and every input
-    weather variable, grabs the closest weather grid points
-    for a given global weather model,
-    and outputs an array that serves as the training data
-    for both the neural network and gradient-boosted trees.
-    :param modelnum: which global weather model to use (int 0-10)
+    This function loops over every weather station, and weather feature, grabs
+    the closest weather grid points for a given global model,
+    and outputs an array that serves as the training data.
+    :param model_num: which global weather model to use (int 0-10)
     :param num_closest_grid: the number of nearest weather forecast
     model grid points.
     :param ncfiles: the list of .nc files to use
@@ -172,7 +194,7 @@ def get_gefs_features(modelnum, num_closest_grid, ncfiles,
     :param method: use4, wavg, avg - average over the weather
     grid points or not?
     :param debug: run a limited number of stations, just to debug output.
-    :return: machine-learning-ready raw features, and the feature names!
+    :return: features, feature_names
     """
 
     # Just to get latitudes and longitudes...
@@ -230,7 +252,7 @@ def get_gefs_features(modelnum, num_closest_grid, ncfiles,
             # Do the 4 averaging of nearest weather stations. NO WEIGHTING
             if method == 'avg':
                 stat_weather = np.mean(
-                    stat_weather[:, modelnum, :, close[ii]],
+                    stat_weather[:, model_num, :, close[ii]],
                     axis=0)
                 if X_train is None:
                     feats = feats + feats_cur
@@ -238,7 +260,7 @@ def get_gefs_features(modelnum, num_closest_grid, ncfiles,
             if method == 'wavg':
                 wts = np.array(dists[ii])
                 stat_weather = np.average(
-                    stat_weather[:, modelnum, :, close[ii]],
+                    stat_weather[:, model_num, :, close[ii]],
                     axis=0, weights=wts)
                 if X_train is None:
                     feats = feats + feats_cur
@@ -250,7 +272,7 @@ def get_gefs_features(modelnum, num_closest_grid, ncfiles,
                 lat_cur = lat_dists[ii]
                 lon_cur = lon_dists[ii]
                 # Grab all dates, specific model number, 4 closest grid points
-                stat_weather = stat_weather[:, modelnum, :, close[ii]]
+                stat_weather = stat_weather[:, model_num, :, close[ii]]
 
                 # Reshape the training data appropriately by stacking
                 # grid points on top of eachother
@@ -296,7 +318,6 @@ def get_gefs_features(modelnum, num_closest_grid, ncfiles,
             X_train = np.vstack((X_train, stat_x))
 
     # Add additional features!
-    """
     maxflux_daily = get_max_doy(X_train[:, 4], np.sum(X_train[:, 15:20], axis=1))
     for hh in range(15,20):
         addfeat = X_train[:, hh] / maxflux_daily
@@ -309,6 +330,4 @@ def get_gefs_features(modelnum, num_closest_grid, ncfiles,
         X_train = np.hstack((X_train, addfeat.reshape(X_train.shape[0], 1)))
     feats = feats + [fe + '_daynorm' for fe in feats[25:30]]
 
-    print X_train.shape, len(feats), feats[25:30]
-    """
     return X_train, feats

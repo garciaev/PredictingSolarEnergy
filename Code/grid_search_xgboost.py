@@ -1,14 +1,15 @@
-import sys
 import xgboost as xgb
 import pickle
 import numpy as np
-from preprocess_global_weather_data import mae
+from preprocess_global_weather_data import mae, mae_percent
+from preprocess_global_weather_data import mad_percent
 from output_predictions import output_model
-from output_predictions import plot_feat_importance
+from visualize_output import plot_feat_importance, plot_data_and_residuals
 
 def grid_search_xgboost(X_train, y_train, X_valid, y_valid, params, nsteps,
                         early_stop, objective, booster, eval_metric,
-                        random_seed, outdir, y_coeff, testX):
+                        random_seed, outdir, y_coeff, testX, featnames,
+                        out_tag_name):
     """
     Make my own XGBoost grid searcher - sci-kit learn one is awful!
     params is a dictionary of lists that could like this:
@@ -69,8 +70,8 @@ def grid_search_xgboost(X_train, y_train, X_valid, y_valid, params, nsteps,
                                     params['subsample'],
                                     params['max_depth'])).T.reshape(-1, nk)
     npts = gridvals.size
-    dtrain = xgb.DMatrix(X_train, y_train)
-    dvalid = xgb.DMatrix(X_valid, y_valid)
+    dtrain = xgb.DMatrix(X_train, y_train, feature_names=featnames)
+    dvalid = xgb.DMatrix(X_valid, y_valid, feature_names=featnames)
     gridpt_number = 0
     # Loop over different grid values
     for eta, al, lm, gm, colt, coll, md, mn, sc, ss, mx in gridvals:
@@ -99,14 +100,31 @@ def grid_search_xgboost(X_train, y_train, X_valid, y_valid, params, nsteps,
         print 'Parameters:', params_cur
         print 'Random Seed:', random_seed
 
-        print 'Actual Train MAE:', mae(gbm.predict(xgb.DMatrix(X_train))
-                                       * y_coeff, y_train * y_coeff)
-        print 'Actual Valid MAE:', mae(gbm.predict(xgb.DMatrix(X_valid))
-                                       * y_coeff, y_valid * y_coeff)
+        y_train_pred = gbm.predict(xgb.DMatrix(X_train,
+                                               feature_names=featnames))
+        print 'Actual Train MAE:', mae(y_train_pred * y_coeff,
+                                       y_train * y_coeff)
 
-        # Save all the ouput of XGBoost
+        print 'Actual Train MAE (%):', mae_percent(y_train_pred * y_coeff,
+                                                   y_train * y_coeff)
+
+        print 'Actual Train MAD (%):', mad_percent(y_train_pred * y_coeff,
+                                                   y_train * y_coeff)
+
+        y_valid_pred = gbm.predict(xgb.DMatrix(X_valid,
+                                               feature_names=featnames))
+        print 'Actual Valid MAE:', mae(y_valid_pred * y_coeff,
+                                       y_valid * y_coeff)
+
+        print 'Actual Valid MAE (%):', mae_percent(y_valid_pred * y_coeff,
+                                                   y_valid * y_coeff)
+
+        print 'Actual Valid MAD (%):', mad_percent(y_valid_pred * y_coeff,
+                                                   y_valid * y_coeff)
+
+        # Save all the out put of XGBoost
         # Save model in model and text format.
-        model_tag = 'random_seed_' + str(random_seed) + \
+        model_tag = out_tag_name + 'random_seed_' + str(random_seed) + \
                     'gridpt_number' + str(gridpt_number)
 
         gbm.save_model(outdir + model_tag + '.model')
@@ -115,7 +133,12 @@ def grid_search_xgboost(X_train, y_train, X_valid, y_valid, params, nsteps,
             pickle.dump([params_cur, objective, random_seed,
                          early_stop, nsteps, evals_result, npts, model_tag], f)
 
-
         # Output the model.
-        output_model(gbm, testX, outdir + model_tag + '_submit.csv', y_coeff)
+        output_model(gbm, testX, outdir + model_tag + '_submit.csv', y_coeff,
+                     featnames)
+        # Plot the feature importance.
+        plot_feat_importance(gbm, outdir + model_tag)
         gridpt_number = gridpt_number + 1
+        # Plot the residuals for this model.
+        plot_data_and_residuals(y_train, y_train_pred, X_train[:, 2],
+                                outdir + out_tag_name + '_resids.png' )

@@ -9,10 +9,13 @@ runxgb.sh
 getsubmits.sh
 login_aws.sh
 .DS_Store
-Code/visualize_output.py
 Data/submit.csv
+.idea/
 # Data/random_seed_59035gridpt_number0_submit.csv
 random_seed_59035gridpt_number0_submit.csv
 Data/train/*nc
 Data/test/*nc
 Code/*pyc
+test/
+debug1random_seed_59035gridpt_number0_rel.png
+debug1random_seed_59035gridpt_number0_ab.png
