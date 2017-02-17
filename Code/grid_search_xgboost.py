@@ -6,10 +6,11 @@ from preprocess_global_weather_data import mad_percent
 from output_predictions import output_model
 from visualize_output import plot_feat_importance, plot_data_and_residuals
 
+
 def grid_search_xgboost(X_train, y_train, X_valid, y_valid, params, nsteps,
                         early_stop, objective, booster, eval_metric,
-                        random_seed, outdir, y_coeff, testX, featnames,
-                        out_tag_name):
+                        random_seed, outdir, y_coeff, testX, feats,
+                        tag_name):
     """
     Make my own XGBoost grid searcher - sci-kit learn one is awful!
     params is a dictionary of lists that could like this:
@@ -24,18 +25,22 @@ def grid_search_xgboost(X_train, y_train, X_valid, y_valid, params, nsteps,
                   "scale_pos_weight": [0.0],
                   "subsample": [1.0],
                   "max_depth": [5.0, 10, 15, 20, 23, 30, 40, 50]}
-    :param X_train: training data
-    :param y_train: training data
-    :param X_valid: validation data
-    :param y_valid: validation data
-    :param params: discussed above.
-    :param nsteps: number of steps to run XGBoost
-    :param early_stop: the early stopping parameter for XGBoost
-    :param objective: objective function to use
-    :param booster: always gbtree, could be gblinear
-    :param eval_metric: the evaluation metric to watch
-    :param random_seed: the random initialization for XGBoost
-    :param outdir: place to put the output of this run of XGBoost
+    :param X_train:
+    :param y_train:
+    :param X_valid:
+    :param y_valid:
+    :param params:
+    :param nsteps:
+    :param early_stop:
+    :param objective:
+    :param booster:
+    :param eval_metric:
+    :param random_seed:
+    :param outdir:
+    :param y_coeff:
+    :param testX:
+    :param feats:
+    :param tag_name:
     :return:
     """
     # grid_search xgboost will make a grid of all different permutations,
@@ -70,9 +75,9 @@ def grid_search_xgboost(X_train, y_train, X_valid, y_valid, params, nsteps,
                                     params['subsample'],
                                     params['max_depth'])).T.reshape(-1, nk)
     npts = gridvals.size
-    dtrain = xgb.DMatrix(X_train, y_train, feature_names=featnames)
-    dvalid = xgb.DMatrix(X_valid, y_valid, feature_names=featnames)
-    gridpt_number = 0
+    dtrain = xgb.DMatrix(X_train, y_train, feature_names=feats)
+    dvalid = xgb.DMatrix(X_valid, y_valid, feature_names=feats)
+    gridpt = 0
     # Loop over different grid values
     for eta, al, lm, gm, colt, coll, md, mn, sc, ss, mx in gridvals:
         watchlist = [(dtrain, 'train'), (dvalid, 'eval')]
@@ -93,52 +98,59 @@ def grid_search_xgboost(X_train, y_train, X_valid, y_valid, params, nsteps,
                       "max_depth": np.int(mx),
                       "base_score": np.median(y_train)}
         evals_result = {}  # store to plot learning curves later
-        # train xgboost using parameters and X_train, y_train
+        # train XGBoost using parameters and X_train, y_train
         gbm = xgb.train(params_cur, dtrain, nsteps, evals=watchlist,
                         verbose_eval=True, early_stopping_rounds=early_stop,
                         evals_result=evals_result)
+
         print 'Parameters:', params_cur
-        print 'Random Seed:', random_seed
+        print 'Random Seed:' + str(random_seed)
 
-        y_train_pred = gbm.predict(xgb.DMatrix(X_train,
-                                               feature_names=featnames))
-        print 'Actual Train MAE:', mae(y_train_pred * y_coeff,
-                                       y_train * y_coeff)
+        y_train_pred = gbm.predict(xgb.DMatrix(X_train, feature_names=feats))
+        print 'Actual Train MAE:' \
+              + str(mae(y_train_pred * y_coeff, y_train * y_coeff))
 
-        print 'Actual Train MAE (%):', mae_percent(y_train_pred * y_coeff,
-                                                   y_train * y_coeff)
+        print 'Train MAE (%):' \
+              + str(mae_percent(y_train_pred * y_coeff, y_train * y_coeff))
 
-        print 'Actual Train MAD (%):', mad_percent(y_train_pred * y_coeff,
-                                                   y_train * y_coeff)
+        print 'Train MAD (%):' \
+              + str(mad_percent(y_train_pred * y_coeff, y_train * y_coeff))
 
-        y_valid_pred = gbm.predict(xgb.DMatrix(X_valid,
-                                               feature_names=featnames))
-        print 'Actual Valid MAE:', mae(y_valid_pred * y_coeff,
-                                       y_valid * y_coeff)
+        y_valid_pred = gbm.predict(xgb.DMatrix(X_valid, feature_names=feats))
+        print 'Actual Valid MAE:' \
+              + str(mae(y_valid_pred * y_coeff, y_valid * y_coeff))
 
-        print 'Actual Valid MAE (%):', mae_percent(y_valid_pred * y_coeff,
-                                                   y_valid * y_coeff)
+        print 'Valid MAE (%):' \
+              + str(mae_percent(y_valid_pred * y_coeff, y_valid * y_coeff))
 
-        print 'Actual Valid MAD (%):', mad_percent(y_valid_pred * y_coeff,
-                                                   y_valid * y_coeff)
+        print 'Valid MAD (%):' \
+              + str(mad_percent(y_valid_pred * y_coeff, y_valid * y_coeff))
 
         # Save all the out put of XGBoost
         # Save model in model and text format.
-        model_tag = out_tag_name + 'random_seed_' + str(random_seed) + \
-                    'gridpt_number' + str(gridpt_number)
+        model_tag = tag_name + '_rnd_' + str(random_seed) \
+                    + 'gridpt_' + str(gridpt)
 
         gbm.save_model(outdir + model_tag + '.model')
 
         with open(outdir + 'parms_' + model_tag + '.pickle', 'w') as f:
-            pickle.dump([params_cur, objective, random_seed,
-                         early_stop, nsteps, evals_result, npts, model_tag], f)
+            pickle.dump([params_cur, objective, random_seed, early_stop, nsteps,
+                         evals_result, npts, model_tag, y_train, y_train_pred,
+                         y_valid, y_valid_pred], f)
 
-        # Output the model.
-        output_model(gbm, testX, outdir + model_tag + '_submit.csv', y_coeff,
-                     featnames)
+        # Output the XGBoost model, making it ready for submission to Kaggle.
+        # Reverse scale the predictions for Kaggle, since they come from testX,
+        # which contains the testing data that is already scaled.
+        y_pred = gbm.predict(xgb.DMatrix(testX, feature_names=feats)) * y_coeff
+        output_model(y_pred, outdir + model_tag + '_submit.csv')
+
         # Plot the feature importance.
         plot_feat_importance(gbm, outdir + model_tag)
-        gridpt_number = gridpt_number + 1
-        # Plot the residuals for this model.
+        gridpt = gridpt + 1
+
+        # Plot the residuals "model-data" for the training data
         plot_data_and_residuals(y_train, y_train_pred, X_train[:, 2],
-                                outdir + out_tag_name + '_resids.png' )
+                                outdir + 'train_' + model_tag + '_resids.png')
+        # Plot the residuals "model-data" for the validation data data
+        plot_data_and_residuals(y_valid, y_valid_pred, X_valid[:, 2],
+                                outdir + 'valid_' + model_tag + '_resids.png')

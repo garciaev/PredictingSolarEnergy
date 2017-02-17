@@ -1,4 +1,6 @@
 import numpy as np
+
+
 def is_leap_year(year):
     """
     Check if year is leap year or not

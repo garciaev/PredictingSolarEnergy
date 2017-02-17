@@ -4,9 +4,64 @@ import netCDF4 as nc
 import pandas as pd
 from geopy.distance import vincenty
 from date_functions import get_doy
+import settings
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+
+def remove_bad_data(trainX, trainY, statnums):
+    """
+    Now search for and purge equipment failures. When the pyranometer
+    fails at a given site, it will be set to a default solar energy value
+    that is unique to each site. We can throw this data out, so as not
+    to confuse our machine learning algorithm!
+    :param trainX:
+    :param trainY:
+    :param statnums:
+    :return:
+    """
+    bad_data = None
+    for i in np.unique(statnums):
+        w = np.where(statnums == i)[0]
+        uniq, uniq_index, uniq_cnts = np.unique(trainY[w], return_counts=True,
+                                                return_index=True)
+        bad_uniques = np.where(uniq_cnts > 10)[0]
+        bad_data_stat = None
+        if len(bad_uniques) == 1:
+            # Get the index of the bad data
+            bad_data_stat = w[np.where(trainY[w] == uniq[bad_uniques])[0]]
+            if bad_data is None:
+                bad_data = bad_data_stat
+            else:
+                bad_data = np.concatenate((bad_data, bad_data_stat))
+
+        if settings.PLOTRAWDATA:
+            plt.clf()
+            plt.plot(trainX[w, 2], trainY[w], 'k.', markersize=0.1)
+            if bad_data_stat is not None:
+                plt.plot(trainX[bad_data_stat, 2], trainY[bad_data_stat], 'r.')
+            plt.xlabel('Day of Year')
+            plt.ylabel('Total Solar Energy')
+            plt.savefig(settings.OUTDIR + 'stat_raw_' + str(np.int(i)) + '.png')
+    # Now delete the bad data that was compiled in a an array "bad_data"
+    trainX = np.delete(trainX, bad_data, axis=0)
+    trainY = np.delete(trainY, bad_data)
+    return trainX, trainY
 
 
 def get_max_doy(doy, feature):
+    """
+    Get the average value of the top 5% of a weather feature
+    as function of the day of the year. For example, solar energy output
+    will be at maximum during a clear sky. Thus, using this function, we can
+    compute a "clear sky index"=(downward radiative flux at given day of year)/
+    (maximum downward radiative flux at given day of year).
+    :param doy: day of year feature.
+    :param feature: weather feature such as downward shortwave radiative flux,
+    downward long wave radiative flux, etc.
+    :return:
+    """
     out_feature = np.zeros(feature.shape[0])
     for day in range(1, 367):
         daysid = np.where(np.abs(doy - day) < 1.0)[0]
@@ -38,9 +93,8 @@ def mae_percent(predictions, targets):
     :param targets:
     :return: mean absolute error
     """
-    print np.abs(predicts - targets) / targets
+    print np.abs(predictions - targets) / targets
     return np.mean(np.abs(predictions - targets) / targets) * 100.00
-
 
 
 def mae(predictions, targets):
@@ -74,6 +128,7 @@ def pd_chunk_csv(fname, chunksize):
         else:
             ret_arr = np.concatenate((ret_arr, chk.values))
     return ret_arr
+
 
 def load_gefs(input_file):
     """
@@ -112,8 +167,8 @@ def load_gefs(input_file):
         # Get the dates
         dates = din.variables['intTime'][:]/100
 
-        np.savez(out_dir + npzname, dates=dates, lat=lat, lon=lon, data=data,
-                 vars=vars)
+        np.savez(out_dir + npzname,
+                 dates=dates, lat=lat, lon=lon, data=data, vars=vars)
 
     return dates, lat, lon, data, vars
 
@@ -159,7 +214,7 @@ def create_feature_map(fileout, features):
     """
     outfile = open(fileout, 'w')
     i = 0
-    outfile.write('{0}\t{1}\n'.format('FeatureNum','Feature'))
+    outfile.write('{0}\t{1}\n'.format('FeatureNum', 'Feature'))
     for feat in features:
         outfile.write('{0}\t{1}\n'.format(i, feat))
         i = i + 1
@@ -215,7 +270,6 @@ def get_gefs_features(model_num, num_closest_grid, ncfiles,
     dists = []
     lat_dists = []
     lon_dists = []
-    n_stats = station_info.shape[0]
     stat_lats = station_info['nlat'].values
     stat_lons = station_info['elon'].values
     stat_elev = station_info['elev'].values
@@ -252,8 +306,7 @@ def get_gefs_features(model_num, num_closest_grid, ncfiles,
             # Do the 4 averaging of nearest weather stations. NO WEIGHTING
             if method == 'avg':
                 stat_weather = np.mean(
-                    stat_weather[:, model_num, :, close[ii]],
-                    axis=0)
+                    stat_weather[:, model_num, :, close[ii]], axis=0)
                 if X_train is None:
                     feats = feats + feats_cur
             # WEIGHT BY THE DISTANCE.
@@ -281,7 +334,7 @@ def get_gefs_features(model_num, num_closest_grid, ncfiles,
                     stat_weather.shape[0] * stat_weather.shape[2]
                 )
                 if X_train is None:
-                    feat_mod = ['_gridpt'+str(hh) for hh in
+                    feat_mod = ['_gridpt' + str(hh) for hh in
                                 range(num_closest_grid)]
                     feats = feats + [f_ + fm_ for fm_ in feat_mod
                                      for f_ in feats_cur]
@@ -318,14 +371,17 @@ def get_gefs_features(model_num, num_closest_grid, ncfiles,
             X_train = np.vstack((X_train, stat_x))
 
     # Add additional features!
-    maxflux_daily = get_max_doy(X_train[:, 4], np.sum(X_train[:, 15:20], axis=1))
-    for hh in range(15,20):
+    maxflux_daily = get_max_doy(X_train[:, 4],
+                                np.sum(X_train[:, 15:20], axis=1))
+    for hh in range(15, 20):
         addfeat = X_train[:, hh] / maxflux_daily
         X_train = np.hstack((X_train, addfeat.reshape(X_train.shape[0], 1)))
+
     feats = feats + [fe + '_daynorm' for fe in feats[15:20]]
 
-    maxflux_daily = get_max_doy(X_train[:, 4], np.sum(X_train[:, 25:30], axis=1))
-    for hh in range(25,30):
+    maxflux_daily = get_max_doy(X_train[:, 4],
+                                np.sum(X_train[:, 25:30], axis=1))
+    for hh in range(25, 30):
         addfeat = X_train[:, hh] / maxflux_daily
         X_train = np.hstack((X_train, addfeat.reshape(X_train.shape[0], 1)))
     feats = feats + [fe + '_daynorm' for fe in feats[25:30]]

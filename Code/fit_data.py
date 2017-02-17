@@ -7,7 +7,7 @@ from grid_search_xgboost import grid_search_xgboost
 import settings
 
 
-def fit_data(trainX, trainY, nrand, ycoeff, testX, out_tag_name):
+def fit_data(trainX, trainY, nrand, ycoeff, testX, tag_name):
     """
     Fit the weather prediction data using either XGBoost (decision trees)
     Neural networks, or both.
@@ -16,7 +16,7 @@ def fit_data(trainX, trainY, nrand, ycoeff, testX, out_tag_name):
     :param nrand:
     :param ycoeff:
     :param testX:
-    :param out_tag_name:
+    :param tag_name:
     :return:
     """
     parameters = {"eta": [0.1],
@@ -35,8 +35,9 @@ def fit_data(trainX, trainY, nrand, ycoeff, testX, out_tag_name):
     objective = settings.OBJECTIVE
     booster = settings.BOOSTER
     eval_metric = settings.EVAL_METRIC
-    featnames = pd.read_csv(settings.OUTDIR + settings.FEATURE_NAMES_FILE,
-                            delimiter='\t')['Feature'].values
+    feats = pd.read_csv(settings.OUTDIR + settings.FEATURE_NAMES_FILE,
+                        delimiter='\t')['Feature'].values
+    out_dir = settings.OUTDIR
     n_feats = trainX.shape[0]
     indices = np.arange(n_feats)
     # Split between train and evaluation data
@@ -52,11 +53,11 @@ def fit_data(trainX, trainY, nrand, ycoeff, testX, out_tag_name):
                             trainX[id_valid], trainY[id_valid],
                             parameters, n_steps, early_stop,
                             objective, booster, eval_metric,
-                            rnd, settings.OUTDIR, ycoeff, testX, featnames,
-                            out_tag_name)
+                            rnd, out_dir, ycoeff, testX, feats,
+                            tag_name)
 
-        model_tag = out_tag_name+'_ids_random_seed' + str(rnd)
+        model_tag = tag_name + '_ids_random_seed' + str(rnd)
         # Save the data for this run of the model.
-        with open(settings.OUTDIR + model_tag + '.pickle', 'w') as f:
-            pickle.dump([out_tag_name, model_tag, rnd, indices, id_train,
-                         id_valid, featnames, jj], f)
+        with open(out_dir + model_tag + '.pickle', 'w') as f:
+            pickle.dump([tag_name, model_tag, rnd, indices, id_train,
+                         id_valid, feats, jj], f)

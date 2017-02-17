@@ -3,17 +3,17 @@ import os
 import argparse
 import numpy as np
 import pandas as pd
+import settings
 from assemble_data import assemble_data
 from normalize_data import normalize_data
 from fit_data import fit_data
-import settings
 
 
 if __name__ == "__main__":
 
-    #--------------------------------------
+    # --------------------------------------
     # Set user parameters from command line
-    #---------------------------------------
+    # ---------------------------------------
     parser = argparse.ArgumentParser()
     argsall = ['--outdir', '--modelnum', '--numclosegrid', '--debug',
                '--method', '--numrandstate', '--tag']
@@ -57,17 +57,16 @@ if __name__ == "__main__":
     print 'Number of random states = ' + str(nrand)
 
     # Name of files that will be saved
-    out_tag_name = args.tag
+    tag_name = args.tag
 
-
-    #---------------
+    # ---------------
     # DATA PIPELINE.
-    #----------------
+    # ----------------
     # 1. Get the .NC files which contain the weather forecasts from
     # 11 different global numerical weather prediction models. Average
     # the data spatially.
     print "Make or grab the training data, averaging spatially..."
-    trainX, trainY, testX = assemble_data(out_tag_name, meth, debug, nclose,
+    trainX, trainY, testX = assemble_data(tag_name, meth, debug, nclose,
                                           station_info, model_num,
                                           train_gefs_files, test_gefs_files)
     print 'Training sizes:'
@@ -76,12 +75,14 @@ if __name__ == "__main__":
     # 2. Normalize the features, use both train and testing
     # data for the feature normalization to fully encompass the
     # range of X values.
-    trainX, trainY, testX, xcoeff, ycoeff = normalize_data(trainX, trainY,
-                                                           testX)
+    print "Normalizing data..."
+    trainX, trainY, testX, xcoeff, ycoeff = \
+        normalize_data(trainX, trainY, testX)
     # 3. Fit the data. Here we use our supervised learning model
     # to find statistically significant correlations between the features
     # (the 12, 15, 18, 21, 24 hours ahead weather forecast) and the prediction
     # variable (the actual total solar energy produced at a given Mesonet
     # station).
-    fit_data(trainX, trainY, nrand, ycoeff, testX, out_tag_name)
+    print "Fitting data..."
+    fit_data(trainX, trainY, nrand, ycoeff, testX, tag_name)
     print 'Finished.'
