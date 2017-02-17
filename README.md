@@ -7,7 +7,7 @@ Errors in the solar energy forecast could lead to large expenses in extra fossil
 and renewable energy. 
 
 # The Data
-For this project, I used 1.4 GB of weather data (500,000 examples) from 1994-2012 from NOAA/ESRL Global Ensemble Forecast System, obtained from Kaggle:
+For this project, I used 1.4 GB of weather data (500,000 examples, 80+ features) from 1994-2012 from NOAA/ESRL Global Ensemble Forecast System, obtained from Kaggle:
 https://www.kaggle.com/c/ams-2014-solar-energy-prediction-contest
 These weather forecasts are from 11 different global weather models for 12, 15, 18, 21 and 24 hours ahead at 144 different latitude/longitude locations across 
 Oklahoma. 
