@@ -39,7 +39,7 @@ I ran XGBoost to find patterns that link weather forecasts to the actual integra
 
 3. Move into the Data directory: ``cd Data/``
 
-4. Open the files to make the ``Data/train/`` and ``Data/test/`` directories. 
+4. Open the ``.tar.gz`` or ``.zip`` files to make the ``Data/train/`` and ``Data/test/`` directories. 
   * If you downloaded the ``.tar.gz`` files, on OSX you can run:
   ```
   tar -xzvf gefs_train.tar.gz
@@ -50,7 +50,7 @@ I ran XGBoost to find patterns that link weather forecasts to the actual integra
   unzip gefs_train.zip
   unzip gefs_test.zip
   ``` 
-There should now be ``Data/train/`` and ``Data/test/`` directories with multiple ``*.nc`` files in both. 
+There should now be ``Data/train/`` and ``Data/test/`` directories with multiple ``*.nc`` files such as ``test/apcp_sfc_latlon_subset_20080101_20121130.nc``, ``test/dlwrf_sfc_latlon_subset_20080101_20121130.nc`` etc. Each file gives weather features described on the Kaggle [data webpage](https://www.kaggle.com/c/ams-2014-solar-energy-prediction-contest/data)
 
 5. Install the [netCDF4](http://unidata.github.io/netcdf4-python/) module. 
 
@@ -64,7 +64,7 @@ python Code/train_solar_predict.py --outdir OUTDIR --modelnum MODELNUM --numclos
 ``` 
 * OUTDIR is the user-specified name of the directory for the output files
 * MODELNUM is the global weather forecast model to use (integer ``0``-``10``)
-* NUM is the number of grid points over which to spatially average a global weather forecast model. 
+* NUM is the number of grid points over which to spatially average a global weather forecast model. Set to ``7``for best results. 
 * DEBUG is for debugging, always set to ``0`` (``1`` for debug). 
 * METH is a string: ``avg`` for a straightforward spatial average of the forecast models;  ``use4`` for no averaging; and ``wavg`` for using a spatial average weighted by the distance from each weather model grid point to each Mesonet weather station in Oklahoma. 
 * NUMRAND is the integer number of times to run XGBoost at different random states. 
