@@ -40,16 +40,16 @@ mv gefs_test.zip Data/
 3. Move into the Data directory: ``cd Data/``
 
 4. Open the files to make the ``Data/train/`` and ``Data/test/`` directories. 
-* If you downloaded the ``.tar.gz`` files, on OSX you can run:
-```
-tar -xzvf gefs_train.tar.gz
-tar -xzvf gefs_test.tar.gz
-``` 
-* Or if you downloaded the ``.zip`` files: 
-```
-unzip gefs_train.zip
-unzip gefs_test.zip
-``` 
+  * If you downloaded the ``.tar.gz`` files, on OSX you can run:
+  ```
+  tar -xzvf gefs_train.tar.gz
+  tar -xzvf gefs_test.tar.gz
+  ``` 
+  * Or if you downloaded the ``.zip`` files: 
+  ```
+  unzip gefs_train.zip
+  unzip gefs_test.zip
+  ``` 
 There should now be ``Data/train/`` and ``Data/test/`` directories with multiple ``*.nc`` files in both. 
 
 5. Install the [netCDF4](http://unidata.github.io/netcdf4-python/) module. 
