@@ -35,10 +35,9 @@ or
 mv gefs_train.zip Data/
 mv gefs_test.zip Data/ 
 ```
-3. Move into the Data directory:
-```
-cd Data/
-```
+
+3. Move into the Data directory: ``cd Data/``
+
 4. Open the files to make the ``Data/train/`` and Data/test/ directories. On OSX you can run:
 ```
 tar -xzvf gefs_train.tar.gz
@@ -50,11 +49,10 @@ unzip gefs_train.zip
 unzip gefs_test.zip
 ```
 There should now be ``Data/train/`` and ``Data/test/`` directories with multiple ``*.nc`` files in both. 
+
 5. Install the [netCDF4](http://unidata.github.io/netcdf4-python/) module, since you likely don't have it. 
-6. Switch back to the ``PredictingSolarEnergy`` directory:
-```
-cd ..
-```
+
+6. Switch back to the ``PredictingSolarEnergy`` directory: ``cd ..``
 # Usage
 
 The code is designed to allow for a lot of experimentation to find the optimal amount of spatial averaging of the weather forecast grid points. 
