@@ -25,11 +25,13 @@ I ran XGBoost to find patterns that link weather forecasts to the actual integra
 # Installation 
 1. Download the weather forecast files `gefs_test.zip` (or `gefs_test.tar.gz`) and `gefs_train.zip` (or `gefs_train.tar.gz`) from Kaggle data [webpage](https://www.kaggle.com/c/ams-2014-solar-energy-prediction-contest/data)
 
-2. Move the files to the ``Data/`` directory:
+2. Move the files to the ``Data/`` directory. 
+* If you downloaded the ``.tar.gz`` files:
 ```
 mv gefs_train.tar.gz Data/
 mv gefs_test.tar.gz Data/ 
-``` or 
+``` 
+* or if you downloaded the ``.zip`` files:
 ```
 mv gefs_train.zip Data/
 mv gefs_test.zip Data/ 
@@ -37,17 +39,20 @@ mv gefs_test.zip Data/
 
 3. Move into the Data directory: ``cd Data/``
 
-4. Open the files to make the ``Data/train/`` and Data/test/ directories. On OSX you can run:
+4. Open the files to make the ``Data/train/`` and ``Data/test/`` directories. 
+* If you downloaded the ``.tar.gz`` files, on OSX you can run:
 ```
 tar -xzvf gefs_train.tar.gz
 tar -xzvf gefs_test.tar.gz
-``` Or if you downloaded the .zip files: 
+``` 
+* Or if you downloaded the ``.zip`` files: 
 ```
 unzip gefs_train.zip
 unzip gefs_test.zip
-``` There should now be ``Data/train/`` and ``Data/test/`` directories with multiple ``*.nc`` files in both. 
+``` 
+There should now be ``Data/train/`` and ``Data/test/`` directories with multiple ``*.nc`` files in both. 
 
-5. Install the [netCDF4](http://unidata.github.io/netcdf4-python/) module, since you likely don't have it. 
+5. Install the [netCDF4](http://unidata.github.io/netcdf4-python/) module. 
 
 6. Switch back to the ``PredictingSolarEnergy/`` directory: ``cd ..``
 # Usage
@@ -58,9 +63,9 @@ From ``PredictingSolarEnergy/`` directory, run the code as:
 python Code/train_solar_predict.py --outdir OUTDIR --modelnum MODELNUM --numclosegrid NUM --debug DEBUG --method METH --numrandstate NUMRAND --tag TAG 
 ``` 
 * OUTDIR is the user-specified name of the directory for the output files
-* MODELNUM is the global weather forecast model to use (integer 0-10)
+* MODELNUM is the global weather forecast model to use (integer ``0``-``10``)
 * NUM is the number of grid points over which to spatially average a global weather forecast model. 
-* DEBUG is for debugging, always set to 0 (1 for debug). 
-* METH is a string: "avg" for a straightforward spatial average of the forecast models;  "use4" for no averaging; and "wavg" for using a spatial average weighted by the distance from each weather model grid point to each Mesonet weather station in Oklahoma. 
+* DEBUG is for debugging, always set to ``0`` (``1`` for debug). 
+* METH is a string: ``avg`` for a straightforward spatial average of the forecast models;  ``use4`` for no averaging; and ``wavg`` for using a spatial average weighted by the distance from each weather model grid point to each Mesonet weather station in Oklahoma. 
 * NUMRAND is the integer number of times to run XGBoost at different random states. 
 * TAG is a string to tag the output files with.  
