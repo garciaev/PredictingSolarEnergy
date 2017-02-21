@@ -10,20 +10,20 @@ customers. Errors in forecasting solar energy availability could lead to large e
 Therefore a multi-million dollar problem is forecasting solar energy using numerical weather prediction models as accurately as possible, for precise energy generation planning. 
 
 # The Data
-For this project, I used 1.4 GB of weather data (500,000 examples, 80+ features) from 1994-2012 from NOAA/ESRL Global Ensemble Forecast System, obtained from the Kaggle [AMS 2013-2014 Solar Energy Prediction Contest](https://www.kaggle.com/c/ams-2014-solar-energy-prediction-contest)
+For this project, I used 1.4 GB of every-3-hours weather forecasts (500,000 examples, 80+ features) from 1994-2012 from NOAA/ESRL Global Ensemble Forecast System, obtained from the Kaggle [AMS 2013-2014 Solar Energy Prediction Contest](https://www.kaggle.com/c/ams-2014-solar-energy-prediction-contest).
 
-These weather forecasts are from 11 different global weather models for 12, 15, 18, 21 and 24 hours ahead at 144 different latitude/longitude locations across 
+These forecasts are from 11 different global weather models for 12, 15, 18, 21 and 24 hours ahead at 144 different latitude/longitude locations across 
 Oklahoma. 
 
-I used these weather forecasts to predict the total integrated solar energy from sun rise to sun set as measured by 98 Oklahoma [Mesonet](https://www.mesonet.org/) sites using pyranometers from 1994-2012
+I used these weather forecasts to predict the total integrated solar energy from sun rise to sun set as measured by 98 Oklahoma [Mesonet](https://www.mesonet.org/) sites using pyranometers from 1994-2012. 
 
 # The Solution
 
-I implemented the gradient-boosted decision tree model [XGBoost](https://github.com/dmlc/xgboost)
-I ran XGBoost to find patterns that link weather forecasts to the actual integrated solar energy measured at each Oklahoma Mesonet site. I was able to predict the actual solar energy available to <6.5% accuracy for the vast majority of days, using a portion of the data not used in model training. 
+I implemented the gradient-boosted decision tree model [XGBoost](https://github.com/dmlc/xgboost).
+I ran XGBoost to find numerical patterns that link weather forecasts to the actual integrated solar energy measured at each Oklahoma Mesonet site. I was able to predict the actual solar energy available to <6.5% accuracy 24 hours ahead for the vast majority of days, using a portion of the data not used in model training. 
 
 # Installation 
-1. Download the weather forecast files `gefs_test.zip` (or `gefs_test.tar.gz`) and `gefs_train.zip` (or `gefs_train.tar.gz`) from Kaggle data [webpage](https://www.kaggle.com/c/ams-2014-solar-energy-prediction-contest/data)
+1. Download the weather forecast files `gefs_test.tar.gz` (or `gefs_test.zip`) and `gefs_train.tar.gz` (or `gefs_train.zip`) from Kaggle competition [ data webpage](https://www.kaggle.com/c/ams-2014-solar-energy-prediction-contest/data)
 
 2. Move the files to the ``Data/`` directory. 
   * If you downloaded the ``.tar.gz`` files:
