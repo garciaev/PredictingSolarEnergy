@@ -22,7 +22,7 @@ I trained a gradient-boosted decision tree model [XGBoost](https://github.com/dm
 I ran XGBoost to find numerical patterns that link weather forecasts to the actual integrated solar energy measured at each Oklahoma Mesonet site. **I was able to predict the actual solar energy available to <6.5% accuracy 24 hours ahead** for the vast majority of days, using a portion of the data not used in model training. 
 
 # Installation 
-1. Download the weather forecast files `gefs_test.tar.gz` (or `gefs_test.zip`) and `gefs_train.tar.gz` (or `gefs_train.zip`) from Kaggle competition [data webpage](https://www.kaggle.com/c/ams-2014-solar-energy-prediction-contest/data)
+1. Download the weather forecast files `gefs_test.tar.gz` (or `gefs_test.zip`) and `gefs_train.tar.gz` (or `gefs_train.zip`) from Kaggle competition [data webpage](https://www.kaggle.com/c/ams-2014-solar-energy-prediction-contest/data).
 
 2. Move the files to the ``Data/`` directory. 
   * If you downloaded the ``.tar.gz`` files:
@@ -49,7 +49,7 @@ I ran XGBoost to find numerical patterns that link weather forecasts to the actu
   unzip gefs_train.zip
   unzip gefs_test.zip
   ``` 
-There should now be ``Data/train/`` and ``Data/test/`` directories with multiple ``*.nc`` files such as ``test/apcp_sfc_latlon_subset_20080101_20121130.nc``, ``test/dlwrf_sfc_latlon_subset_20080101_20121130.nc`` etc. Each file gives weather features described on the Kaggle [data webpage](https://www.kaggle.com/c/ams-2014-solar-energy-prediction-contest/data)
+There should now be ``Data/train/`` and ``Data/test/`` directories with multiple ``*.nc`` files such as ``test/apcp_sfc_latlon_subset_20080101_20121130.nc``, ``test/dlwrf_sfc_latlon_subset_20080101_20121130.nc`` etc. Each file gives weather features described on the Kaggle [data webpage](https://www.kaggle.com/c/ams-2014-solar-energy-prediction-contest/data).
 
 5. Install the [netCDF4](http://unidata.github.io/netcdf4-python/) module. 
 
