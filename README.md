@@ -24,5 +24,45 @@ I implemented extreme gradient boosted trees XGBoost: https://github.com/dmlc/xg
 I ran XGBoost to find patterns that link weather forecasts to the actual integrated solar energy measured at each Oklahoma Mesonet site. I was able to predict the actual solar energy available to <6.5% accuracy for the vast majority of days, using a portion of the data not used in model training. 
 
 # Installation 
-1. Download the data: https://www.kaggle.com/c/ams-2014-solar-energy-prediction-contest
-2.  
+1. Download the weather forecast files `gefs_test.zip` (or `gefs_test.tar.gz`) and `gefs_train.zip` (or `gefs_train.tar.gz`) from the Kaggle webpage:
+https://www.kaggle.com/c/ams-2014-solar-energy-prediction-contest
+
+2. Move the file to the /Data directory:
+```
+mv gefs_train.tar.gz Data/
+mv gefs_test.tar.gz Data/ 
+```
+or 
+```
+mv gefs_train.zip Data/
+mv gefs_test.zip Data/ 
+```
+
+3. Move into the Data directory:
+```
+cd Data/
+```
+
+4. Open the files to make the Data/train/ and Data/test/ directories:
+```
+tar -xzvf gefs_train.tar.gz
+tar -xzvf gefs_test.tar.gz
+```
+Or if you downloaded the .zip files: 
+```
+unzip gefs_train.zip
+unzip gefs_test.zip
+```
+There should now be Data/train/ and Data/test/ directories with multiple .nc files in both. 
+
+5. Install the netCDF4 module, since you likely don't have it: http://unidata.github.io/netcdf4-python/
+
+6. From the main branch directory, run the code as: 
+```
+python Code/train_solar_predict.py --outdir OUTDIR --modelnum MODELNUM --numclosegrid NUM --debug DEBUG --method METH --numrandstate NUMRAND --tag TAG 
+``` 
+OUTDIR is the user-specified name of the directory for the output files
+MODELNUM is the global weather forecast model to use (integer 0-10)
+NUM is the number of grid points over which to spatially average a global weather forecast model. 
+DEBUG is for debugging, always set to 0 (1 for debug). 
+METH is a string: "avg" for a straightforward spatial average of the forecast models;  "use4" for no averaging; and "wavg" for using a spatial average weighted by the distance from each weather model grid point to each Mesonet weather station in Oklahoma. 
