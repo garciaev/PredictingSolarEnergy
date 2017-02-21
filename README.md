@@ -26,16 +26,16 @@ I ran XGBoost to find patterns that link weather forecasts to the actual integra
 1. Download the weather forecast files `gefs_test.zip` (or `gefs_test.tar.gz`) and `gefs_train.zip` (or `gefs_train.tar.gz`) from Kaggle data [webpage](https://www.kaggle.com/c/ams-2014-solar-energy-prediction-contest/data)
 
 2. Move the files to the ``Data/`` directory. 
-* If you downloaded the ``.tar.gz`` files:
-```
-mv gefs_train.tar.gz Data/
-mv gefs_test.tar.gz Data/ 
-``` 
-* or if you downloaded the ``.zip`` files:
-```
-mv gefs_train.zip Data/
-mv gefs_test.zip Data/ 
-```
+  * If you downloaded the ``.tar.gz`` files:
+  ```
+  mv gefs_train.tar.gz Data/
+  mv gefs_test.tar.gz Data/ 
+  ``` 
+  * or if you downloaded the ``.zip`` files:
+  ```
+  mv gefs_train.zip Data/
+  mv gefs_test.zip Data/ 
+  ```
 
 3. Move into the Data directory: ``cd Data/``
 
