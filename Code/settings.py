@@ -17,5 +17,5 @@ TRAIN_FRAC = 0.80
 BOOSTER = "gbtree"
 OBJECTIVE = "reg:logistic"
 EVAL_METRIC = "mae"
-N_STEPS = 300
+N_STEPS = 400
 EARLY_STOP = 50

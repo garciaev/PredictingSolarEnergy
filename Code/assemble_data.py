@@ -64,7 +64,7 @@ def assemble_data(out_tag_name, meth, debug, nclose, station_info, model_num,
         create_feature_map(settings.OUTDIR + settings.FEATURE_NAMES_FILE, feats)
 
         with open(settings.OUTDIR + out_tag_name + '.pickle', 'w') as f:
-            pickle.dump([trainY, statnums_x, longs, lats, elevs, date, meth,
+            pickle.dump([trainY, statnums, longs, lats, elevs, date, meth,
                          debug], f)
         pd.DataFrame(trainX, columns=feats).to_csv(settings.OUTDIR
                                                    + out_tag_name + '.csv',
