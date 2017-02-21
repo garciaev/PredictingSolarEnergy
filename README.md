@@ -19,7 +19,7 @@ I used these weather forecasts to predict the total integrated solar energy from
 
 # The Solution
 
-I implemented extreme gradient boosted trees XGBoost: https://github.com/dmlc/xgboost
+I implemented the gradient-boosted decision tree model [XGBoost](https://github.com/dmlc/xgboost)
 I ran XGBoost to find patterns that link weather forecasts to the actual integrated solar energy measured at each Oklahoma Mesonet site. I was able to predict the actual solar energy available to <6.5% accuracy for the vast majority of days, using a portion of the data not used in model training. 
 
 # Installation 
