@@ -25,12 +25,11 @@ I ran XGBoost to find patterns that link weather forecasts to the actual integra
 # Installation 
 1. Download the weather forecast files `gefs_test.zip` (or `gefs_test.tar.gz`) and `gefs_train.zip` (or `gefs_train.tar.gz`) from Kaggle data [webpage](https://www.kaggle.com/c/ams-2014-solar-energy-prediction-contest/data)
 
-2. Move the file to the /Data directory:
+2. Move the files to the ``Data/`` directory:
 ```
 mv gefs_train.tar.gz Data/
 mv gefs_test.tar.gz Data/ 
-```
-or 
+``` or 
 ```
 mv gefs_train.zip Data/
 mv gefs_test.zip Data/ 
@@ -42,21 +41,19 @@ mv gefs_test.zip Data/
 ```
 tar -xzvf gefs_train.tar.gz
 tar -xzvf gefs_test.tar.gz
-```
-Or if you downloaded the .zip files: 
+``` Or if you downloaded the .zip files: 
 ```
 unzip gefs_train.zip
 unzip gefs_test.zip
-```
-There should now be ``Data/train/`` and ``Data/test/`` directories with multiple ``*.nc`` files in both. 
+``` There should now be ``Data/train/`` and ``Data/test/`` directories with multiple ``*.nc`` files in both. 
 
 5. Install the [netCDF4](http://unidata.github.io/netcdf4-python/) module, since you likely don't have it. 
 
-6. Switch back to the ``PredictingSolarEnergy`` directory: ``cd ..``
+6. Switch back to the ``PredictingSolarEnergy/`` directory: ``cd ..``
 # Usage
 
 The code is designed to allow for a lot of experimentation to find the optimal amount of spatial averaging of the weather forecast grid points. 
-From ``PredictingSolarEnergy`` directory, run the code as: 
+From ``PredictingSolarEnergy/`` directory, run the code as: 
 ```
 python Code/train_solar_predict.py --outdir OUTDIR --modelnum MODELNUM --numclosegrid NUM --debug DEBUG --method METH --numrandstate NUMRAND --tag TAG 
 ``` 
