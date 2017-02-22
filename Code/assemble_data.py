@@ -31,13 +31,13 @@ def assemble_data(out_tag_name, meth, debug, nclose, station_info, model_num,
     :param test_gefs_files:
     :return:
     """
-    if os.path.isfile(settings.OUTDIR + out_tag_name+'.pickle'):
+    if os.path.isfile(settings.OUTDIR + out_tag_name + '.pickle'):
         print 'Loading up the previously assembled weather training data...'
         with open(settings.OUTDIR + out_tag_name + '.pickle', 'r') as f:
-            trainY, statnums, longs, lats, elevs, date, meth, \
-            debug = pickle.load(f)
-            trainX = pd_chunk_csv(settings.OUTDIR + out_tag_name + '.csv',
-                                  chunksize=10000)
+            trainY, statnums, longs, lats, elevs, date, meth, debug = \
+                pickle.load(f)
+        trainX = pd_chunk_csv(settings.OUTDIR + out_tag_name + '.csv',
+                              chunksize=10000)
     else:
         print 'Assembling the weather training data..'
         trainY = pd.read_csv(settings.PREDICT_CSV)
