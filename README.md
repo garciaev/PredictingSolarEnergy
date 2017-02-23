@@ -21,6 +21,9 @@ I trained several hundred gradient-boosted decision tree models [XGBoost](https:
 
 I ran XGBoost to find numerical patterns that link weather forecasts to the actual integrated solar energy measured at each Oklahoma Mesonet site. **I was able to predict the actual solar energy available to <5.8% accuracy 24 hours ahead for the vast majority of days**, using a portion of the data not used in model training.  
 
+# Limitations
+Numerical weather forecasts with grid spacings of 10+ kilometers lack the resolution necessary to predict the locations of clouds directly. Clouds are the main source of uncertainty in solar energy generation. Thus, more precise satellite data would be necessary to increase predictive power. 
+
 # The future
 An XGBoost decision-tree model trained to predict solar energy using numerical
 weather predictions can be easily implemented in real time for a given solar energy general site. The model could be periodically updated with a longer time baseline, and site-specific weather information.
