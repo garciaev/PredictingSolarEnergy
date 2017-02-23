@@ -24,7 +24,7 @@ I ran XGBoost to find numerical patterns that link weather forecasts to the actu
 # Limitations
 Numerical weather forecasts with grid spacings of 10+ kilometers lack the resolution necessary to predict the locations of clouds directly. Clouds are the main source of uncertainty in solar energy generation. Thus, more precise satellite data would be necessary to increase predictive power. 
 
-# The future
+# The Future
 An XGBoost decision-tree model trained to predict solar energy using numerical
 weather predictions can be easily implemented in real time for a given solar energy general site. The model could be periodically updated with a longer time baseline, and site-specific weather information.
 
