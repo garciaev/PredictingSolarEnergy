@@ -53,8 +53,8 @@ if __name__ == "__main__":
     print 'Using method = ' + meth
 
     # Number of different random states to run
-    nrand = np.int(args.numrandstate)
-    print 'Number of random states = ' + str(nrand)
+    num_rand = np.int(args.numrandstate)
+    print 'Number of random states = ' + str(num_rand)
 
     # Name of files that will be saved
     tag_name = args.tag
@@ -84,5 +84,5 @@ if __name__ == "__main__":
     # variable (the actual total solar energy produced at a given Mesonet
     # station).
     print "Fitting data..."
-    fit_data(trainX, trainY, nrand, ycoeff, testX, tag_name)
+    fit_data(trainX, trainY, num_rand, ycoeff, testX, tag_name, True)
     print 'Finished.'

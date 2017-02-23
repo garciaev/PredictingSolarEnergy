@@ -9,8 +9,8 @@ from visualize_output import plot_feat_importance, plot_data_and_residuals
 
 def grid_search_xgboost(X_train, y_train, X_valid, y_valid, params, nsteps,
                         early_stop, objective, booster, eval_metric,
-                        random_seed, outdir, y_coeff, testX, feats,
-                        tag_name):
+                        random_seed, out_dir, y_coeff, testX, feats,
+                        tag_name, visualize):
     """
     Make my own XGBoost grid searcher - sci-kit learn one is awful!
     params is a dictionary of lists that could like this:
@@ -36,7 +36,7 @@ def grid_search_xgboost(X_train, y_train, X_valid, y_valid, params, nsteps,
     :param booster:
     :param eval_metric:
     :param random_seed:
-    :param outdir:
+    :param out_dir:
     :param y_coeff:
     :param testX:
     :param feats:
@@ -131,9 +131,9 @@ def grid_search_xgboost(X_train, y_train, X_valid, y_valid, params, nsteps,
         model_tag = tag_name + '_rnd_' + str(random_seed) \
                     + 'gridpt_' + str(gridpt)
 
-        gbm.save_model(outdir + model_tag + '.model')
+        gbm.save_model(out_dir + model_tag + '.model')
 
-        with open(outdir + 'parms_' + model_tag + '.pickle', 'w') as f:
+        with open(out_dir + 'parms_' + model_tag + '.pickle', 'w') as f:
             pickle.dump([params_cur, objective, random_seed, early_stop, nsteps,
                          evals_result, npts, model_tag, y_train, y_train_pred,
                          y_valid, y_valid_pred], f)
@@ -141,16 +141,20 @@ def grid_search_xgboost(X_train, y_train, X_valid, y_valid, params, nsteps,
         # Output the XGBoost model, making it ready for submission to Kaggle.
         # Reverse scale the predictions for Kaggle, since they come from testX,
         # which contains the testing data that is already scaled.
-        y_pred = gbm.predict(xgb.DMatrix(testX, feature_names=feats)) * y_coeff
-        output_model(y_pred, outdir + model_tag + '_submit.csv')
+        if testX is not None:
+            y_pred = gbm.predict(xgb.DMatrix(testX, feature_names=feats)) \
+                     * y_coeff
+            output_model(y_pred, out_dir + model_tag + '_submit.csv')
 
         # Plot the feature importance.
-        plot_feat_importance(gbm, outdir + model_tag)
+        plot_feat_importance(gbm, out_dir + model_tag)
         gridpt = gridpt + 1
-
-        # Plot the residuals "model-data" for the training data
-        plot_data_and_residuals(y_train, y_train_pred, X_train[:, 2],
-                                outdir + 'train_' + model_tag + '_resids.png')
-        # Plot the residuals "model-data" for the validation data data
-        plot_data_and_residuals(y_valid, y_valid_pred, X_valid[:, 2],
-                                outdir + 'valid_' + model_tag + '_resids.png')
+        if visualize:
+            # Plot the residuals "model-data" for the training data
+            plot_data_and_residuals(y_train, y_train_pred, X_train[:, 2],
+                                    out_dir + 'train_' + model_tag
+                                    + '_resids.png')
+            # Plot the residuals "model-data" for the validation data data
+            plot_data_and_residuals(y_valid, y_valid_pred, X_valid[:, 2],
+                                    out_dir + 'valid_' + model_tag
+                                    + '_resids.png')

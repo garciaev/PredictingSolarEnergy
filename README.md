@@ -19,14 +19,16 @@ I used these weather forecasts to predict the total integrated solar energy from
 # The Solution
 I trained a gradient-boosted decision tree model [XGBoost](https://github.com/dmlc/xgboost) using spatially 100x100 kilometers averaged weather forecasts to predict the actual integrated total solar energy. 
 
-I ran XGBoost to find numerical patterns that link weather forecasts to the actual integrated solar energy measured at each Oklahoma Mesonet site. **I was able to predict the actual solar energy available to <6.5% accuracy 24 hours ahead** for the vast majority of days, using a portion of the data not used in model training. 
+I ran XGBoost to find numerical patterns that link weather forecasts to the actual integrated solar energy measured at each Oklahoma Mesonet site. **I was able to predict the actual solar energy available to <5.8% accuracy 24 hours ahead** for the vast majority of days, using a portion of the data not used in model training. 
 
 # The future
 An XGBoost model trained to predict solar energy using numerical
-weather models can be easily implemented in real time. The model could be periodically updated with a longer time baseline, and site-specific weather information.    
+weather models can be easily implemented in real time. The model could be periodically updated with a longer time baseline, and site-specific weather information.
 
+These solar energy prediction models can also be useful for rooftop solar energy generation in conjunction with batteries - a virtual powerplant controlling a network of charged batteries linked to rooftop solar would be find solar energy prediction necessary to maximize profits.  
+ 
 # Installation 
-1. Download the weather forecast files `gefs_test.tar.gz` (or `gefs_test.zip`) and `gefs_train.tar.gz` (or `gefs_train.zip`) from Kaggle competition [data webpage](https://www.kaggle.com/c/ams-2014-solar-energy-prediction-contest/data).
+1. Download the weather forecast files `gefs_test.tar.gz` (or `gefs_test.zip`) and `gefs_train.tar.gz` (or `gefs_train.zip`) from the Kaggle competition [data webpage](https://www.kaggle.com/c/ams-2014-solar-energy-prediction-contest/data).
 
 2. Move the files to the ``Data/`` directory. 
   * If you downloaded the ``.tar.gz`` files:

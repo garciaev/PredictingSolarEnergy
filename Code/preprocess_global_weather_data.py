@@ -93,7 +93,6 @@ def mae_percent(predictions, targets):
     :param targets:
     :return: mean absolute error
     """
-    print np.abs(predictions - targets) / targets
     return np.mean(np.abs(predictions - targets) / targets) * 100.00
 
 

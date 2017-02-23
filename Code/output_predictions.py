@@ -19,7 +19,7 @@ def average_models_and_save(modelfiles, testX, ycoeff, xcoeff, INDIR):
         else:
             for i, cols in enumerate(sampsub.columns.values[1:]):
                 sampsub[cols] = sampsub[cols]+ypredout[:, i]
-    sampsub.to_csv(INDIR+'submit.csv', index=False)
+    sampsub.to_csv(INDIR + 'submit.csv', index=False)
 
 
 def output_model(ypred, subname):
@@ -36,22 +36,3 @@ def output_model(ypred, subname):
         sampsub[cols] = ypred_out[:, i]
 
     sampsub.to_csv(subname, index=False)
-
-def linearly_optimized_average(predictions, targets):
-    """
-    Given a list of predictions in the shape of y_train (or y_valid)
-    do a linear regression to predict the target.
-    :param outputs:
-    :param predictions:
-    :return:
-    """
-    x_train = None
-    for y in predictions:
-        if x_train is None:
-            x_train = y
-        else:
-            x_train = np.hstack((x_train, y))
-    # Now do the fit
-    lr = LinearRegression()
-    lr.fit(x_train, targets)
-    #lr.predict()
