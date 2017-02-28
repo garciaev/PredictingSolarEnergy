@@ -9,7 +9,7 @@ Errors in forecasting solar energy availability could lead to large expenses in 
 Machine learning has the potential to find complex, statistically significant patterns that link numerical weather forecasts to solar energy generation. These trained models can then be used to make accurate predictions for solar power generation at a given solar energy generation site.  
 
 # The Data
-For this project, **I used 1.4 GB of every-3-hours numerical weather forecasts (500,000+ examples, 7920 raw features)** from 1994-2012 from NOAA/ESRL Global Ensemble Forecast System, obtained from the [Kaggle AMS 2013-2014 Solar Energy Prediction Contest](https://www.kaggle.com/c/ams-2014-solar-energy-prediction-contest).
+For this project, **I used 18 years of every-3-hours numerical weather forecasts (500,000+ examples, 7920 raw features)** from 1994-2012 from NOAA/ESRL Global Ensemble Forecast System, obtained from the [Kaggle AMS 2013-2014 Solar Energy Prediction Contest](https://www.kaggle.com/c/ams-2014-solar-energy-prediction-contest).
 
 These forecasts are from 11 different global weather models for 12, 15, 18, 21 and 24 hours ahead at 144 different latitude/longitude locations across 
 Oklahoma. 
