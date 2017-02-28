@@ -7,6 +7,7 @@ from preprocess_global_weather_data import pd_chunk_csv
 from preprocess_global_weather_data import create_feature_map
 from preprocess_global_weather_data import remove_bad_data
 from visualize_output import plot_features_vs_targets
+from visualize_output import plot_features_vs_targets_six
 import settings
 
 
@@ -21,14 +22,15 @@ def assemble_data(out_tag_name, meth, debug, nclose, station_info, model_num,
     2. Remove data points where pyranometer failed to get an accurate
     measurement of the actual solar energy that day.
 
-    :param out_tag_name:
-    :param meth:
-    :param debug:
-    :param nclose:
-    :param station_info:
-    :param model_num:
-    :param train_gefs_files:
-    :param test_gefs_files:
+    :param out_tag_name: the name to tag the output files
+    :param meth: method of spatial averaging
+    :param debug: whether to debug the code or not
+    :param nclose: number of grid points to use
+    :param station_info: a pandas data frame of information on each station
+    from station_info.csv
+    :param model_num: which global weather forecast model to use
+    :param train_gefs_files: the input training .nc files
+    :param test_gefs_files: the input testing .nc files.
     :return:
     """
     if os.path.isfile(settings.OUTDIR + out_tag_name + '.pickle'):
@@ -98,5 +100,15 @@ def assemble_data(out_tag_name, meth, debug, nclose, station_info, model_num,
     trainX, trainY = remove_bad_data(trainX, trainY, statnums_x)
     if settings.PLOTRAWDATA:
         plot_features_vs_targets(trainX, trainY, 'raw_')
+
+        indexes = [2, 17, 22, 57, 77, 32]
+        feats = ['Day of Year', 'Forecasted Downward Shortwave Flux',
+                 'Forecasted Precipitable Water Over Entire Depth of Atmosphere',
+                 'Forecasted Surface Temperature',
+                 'Forecasted Upward Shortwave Flux',
+                 'Forecasted Specific Humidity']
+
+        w = np.where(statnums_x == 1)[0]
+        plot_features_vs_targets_six(trainX[w, :], trainY[w], indexes, feats)
 
     return trainX, trainY, testX

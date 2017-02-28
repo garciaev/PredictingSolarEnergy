@@ -7,11 +7,11 @@ import os
 import argparse
 from sklearn.linear_model import LinearRegression
 from sklearn.cross_validation import train_test_split
-from preprocess_global_weather_data import mae, mae_percent
-from preprocess_global_weather_data import mad_percent
-from preprocess_global_weather_data import create_feature_map
+from preprocess_global_weather_data import get_max_doy
 from output_predictions import output_model
-from fit_data import fit_data
+from visualize_output import plot_hist_residuals
+from visualize_output import plot_clear_sky_index_residuals
+from date_functions import get_doy
 import settings
 
 
@@ -64,95 +64,130 @@ def avg_models(dir_, training_or_prediction):
         return out_data, y_true
 
 
-def aggregate_models(dirs_models, training_or_prediction):
-    # Grab the directories and stack the models horizontally.
-    all_models = None
-    for dirs_ in dirs_models:
-        avg_model_, y_train = avg_models(dirs_, training_or_prediction)
-        if all_models is None:
-            all_models = avg_model_
-        else:
-            all_models = np.vstack((all_models, avg_model_))
-    if training_or_prediction == 'training':
-        return all_models, y_train
-    if training_or_prediction == 'prediction':
-        return all_models, y_train
+def aggregate_models(dirs_models, training_or_prediction, out_file):
 
+    if os.path.isfile(settings.OUTDIR + out_file):
+        with open(settings.OUTDIR + out_file) as f:
+            all_models, y_train = pickle.load(f)
+    else:
+        # Grab the directories and stack the models horizontally.
+        all_models = None
+        for dirs_ in dirs_models:
+            avg_model_, y_train = avg_models(dirs_, training_or_prediction)
+            if all_models is None:
+                all_models = avg_model_
+            else:
+                all_models = np.vstack((all_models, avg_model_))
+        with open(settings.OUTDIR + out_file, 'w') as f:
+            pickle.dump([all_models, y_train], f)
+    return all_models, y_train
+
+
+def avg_linear_regression_models(features, targets, features_sub,
+                                 nsamp, train_frac):
+    y_pred = None
+    y_pred_sub = None
+    for rands in range(nsamp):
+
+        indices = np.arange(features.shape[0])
+        # Step 2, do the linearly optimized fit
+        linear_reg = LinearRegression()
+
+        id_train, id_valid = train_test_split(indices, train_size=train_frac,
+                                              random_state=rands)
+
+        features_in = np.hstack((features[id_train, :],
+                                 features[id_train, :]**2))
+        linear_reg.fit(features_in, targets[id_train])
+
+        if y_pred is None:
+            features_in = np.hstack((features, features**2))
+            y_pred = linear_reg.predict(features_in)
+        else:
+            features_in = np.hstack((features, features**2))
+            y_pred = y_pred + linear_reg.predict(features_in)
+
+        # Output the linear regression model
+        if y_pred_sub is None:
+            features_in = np.hstack((features_sub, features_sub**2))
+            y_pred_sub = linear_reg.predict(features_in)
+        else:
+            features_in = np.hstack((features_sub, features_sub**2))
+            y_pred_sub = y_pred_sub + linear_reg.predict(features_in)
+
+    return y_pred / float(nsamp), y_pred_sub / float(nsamp)
+
+
+def median_percent_diff(targets, predictions):
+    percent_diff_mad = np.median((targets - predictions) / targets)
+    return percent_diff_mad
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    argsall = ['--outdirtag']
+    argsall = ['--indirtag', '--outdir', '--tag']
 
     for ar in argsall:
         parser.add_argument(ar)
     args = parser.parse_args()
 
-    dirs = glob.glob(args.outdirtag+'*/')
+    dirs = glob.glob(args.indirtag+'*/')
+    settings.OUTDIR = os.getcwd() + '/' + args.outdir + '/'
 
-    # Step 1, aggregate the training data
-    all_models_train, y_train = aggregate_models(dirs, 'training')
+    # Step 1: aggregate the training data
+    all_models_train, y_train = aggregate_models(dirs, 'training',
+                                                 'all_models_train.pickle')
     all_models_train = all_models_train.T
-    indices = np.arange(y_train.shape[0])
 
-    # Step 2, do the linearly optimized fit
-    linear_reg = LinearRegression()
-    id_train, id_valid = train_test_split(indices, train_size=0.9,
-                                          random_state=5)
-
-    linear_reg.fit(all_models_train[id_train, :], y_train[id_train])
-
-    y_preds = linear_reg.predict(all_models_train[id_valid, :])
-    y_preds_mean = all_models_train[id_valid, :].mean(axis=1)
-
-    print 'MAE, MAE Percent, MAD Percent with linear regression'
-    print mae(y_preds, y_train[id_valid])
-    print mae_percent(y_preds, y_train[id_valid])
-    print mad_percent(y_preds, y_train[id_valid])
-
-    print 'MAE, MAE Percent, MAD Percent with straightforward average'
-    print mae(y_preds_mean, y_train[id_valid])
-    print mae_percent(y_preds_mean, y_train[id_valid])
-    print mad_percent(y_preds_mean, y_train[id_valid])
-
-    # Step 3:
-    all_models_submit, _ = aggregate_models(dirs, 'prediction')
+    # Step 2:
+    all_models_submit, _ = aggregate_models(dirs, 'prediction',
+                                            'all_models_submit.pickle')
     all_models_submit = all_models_submit.T
 
-    # Output the linear regression model
-    y_preds = linear_reg.predict(all_models_submit)
-    output_model(y_preds, 'linear_reg_ensemble_submit.csv')
+    with open(dirs[0] + args.indirtag + '_0' + '.pickle') as f:
+        _, statnums, longs, lats, elevs, date, meth, debug = pickle.load(f)
+    with open(dirs[0] + 'bad_data.pickle') as f:
+        bad_data = pickle.load(f)
+    statnums = np.delete(statnums, bad_data)
+    date = np.delete(date, bad_data)
+    with open(dirs[0] + settings.NORMCOEFFS_FILE) as f:
+        x_coeff, y_coeff, w_ymax = pickle.load(f)
 
-    # Output the straightforward average model
-    y_preds_mean = all_models_submit.mean(axis=1)
-    output_model(y_preds_mean, 'mean_ensemble_submit.csv')
+    statnums = statnums[w_ymax]
+    date = date[w_ymax]
+    doy = get_doy(date)
 
-    # Perform a grid search using XGBoost.
-    settings.N_STEPS = 400
-    settings.EARLY_STOP = 50
-    settings.ETA = [0.05],
-    settings.ALPHA = [0.0],
-    settings.LAMBDA = [0.0],
-    settings.GAMMA = [0.0],
-    settings.COLSAMPLE_BYTREE = [1.0],
-    settings.COLSAMPLE_BYLEVEL = [1.0],
-    settings.MAX_DELTA_STEP = [0.0],
-    settings.MIN_CHILD_WEIGHT = [1.0],
-    settings.SCALE_POS_WEIGHT = [1.0],
-    settings.SUBSAMPLE = [1.0],
-    settings.MAX_DEPTH = [2, 3, 4, 5, 7, 8, 9]
-    settings.OUTDIR = os.getcwd()+'/ensemble1/'
-    settings.FEATURE_NAMES_FILE = 'level2features.csv'
-    settings.TRAIN_FRAC = 0.9
+    with open(dirs[0] + args.indirtag + '_0' + '_test.pickle') as f:
+        statnums_sub, longs, lats, elevs, date, meth, debug = pickle.load(f)
 
-    num_rand = 1
-    feats = ['Model' + str(num) for num in range(all_models_submit.shape[1])]
-    create_feature_map(settings.OUTDIR + settings.FEATURE_NAMES_FILE, feats)
+    y_preds = np.zeros(y_train.shape[0])
+    y_preds_sub = np.zeros(all_models_submit.shape[0])
 
-    # Get the y coefficient
-    with open(dirs[0] + settings.NORMCOEFFS_FILE, 'r') as f:
-        x_coeff, y_coeff = pickle.load(f)
+    # Now correct for any global bias in each station individually.
+    for i in np.unique(statnums):
+        w1 = np.where(statnums == i)[0]
+        w2 = np.where(statnums_sub == i)[0]
 
-    print 'Fitting level 2 model ensemble...'
-    fit_data(all_models_train, y_train, num_rand, y_coeff,
-             all_models_submit / y_coeff,
-             'ensemble_take1', False)
+        y_pred, y_pred_sub = avg_linear_regression_models(
+            all_models_train[w1, :], y_train[w1],
+            all_models_submit[w2, :] / y_coeff,
+            100, 0.95)
+
+        mad = (1.0 + median_percent_diff(y_train[w1], y_pred))
+
+        y_preds[w1] = mad * y_pred
+        y_preds_sub[w2] = mad * y_pred_sub * y_coeff
+
+        plot_hist_residuals(y_preds[w1], y_train[w1], 'final_residuals'
+                            + str(i) + '.png')
+
+    plot_hist_residuals(y_train, y_preds, 'final_residuals.png')
+
+    w1 = np.where(statnums < 100)[0]
+    clear_sky_index_true = y_train / get_max_doy(doy, y_train)
+
+    plot_clear_sky_index_residuals(y_train[w1], y_preds[w1],
+                                   clear_sky_index_true[w1],
+                                   'clear_sky_index_resids.png', 100)
+
+    output_model(y_preds_sub, settings.OUTDIR
+                 + 'avg_bystation_linear_reg_ensemble_submit.csv')

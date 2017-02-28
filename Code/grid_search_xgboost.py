@@ -142,6 +142,7 @@ def grid_search_xgboost(X_train, y_train, X_valid, y_valid, params, nsteps,
         # Reverse scale the predictions for Kaggle, since they come from testX,
         # which contains the testing data that is already scaled.
         if testX is not None:
+            print 'Output...'
             y_pred = gbm.predict(xgb.DMatrix(testX, feature_names=feats)) \
                      * y_coeff
             output_model(y_pred, out_dir + model_tag + '_submit.csv')

@@ -5,32 +5,33 @@ import pandas as pd
 from geopy.distance import vincenty
 from date_functions import get_doy
 import settings
+import pickle
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
-def remove_bad_data(trainX, trainY, statnums):
+def remove_bad_data(x_train, y_train, statnums):
     """
     Now search for and purge equipment failures. When the pyranometer
     fails at a given site, it will be set to a default solar energy value
     that is unique to each site. We can throw this data out, so as not
     to confuse our machine learning algorithm!
-    :param trainX:
-    :param trainY:
+    :param x_train:
+    :param y_train:
     :param statnums:
     :return:
     """
     bad_data = None
     for i in np.unique(statnums):
         w = np.where(statnums == i)[0]
-        uniq, uniq_index, uniq_cnts = np.unique(trainY[w], return_counts=True,
+        uniq, uniq_index, uniq_cnts = np.unique(y_train[w], return_counts=True,
                                                 return_index=True)
         bad_uniques = np.where(uniq_cnts > 10)[0]
         bad_data_stat = None
         if len(bad_uniques) == 1:
             # Get the index of the bad data
-            bad_data_stat = w[np.where(trainY[w] == uniq[bad_uniques])[0]]
+            bad_data_stat = w[np.where(y_train[w] == uniq[bad_uniques])[0]]
             if bad_data is None:
                 bad_data = bad_data_stat
             else:
@@ -38,16 +39,20 @@ def remove_bad_data(trainX, trainY, statnums):
 
         if settings.PLOTRAWDATA:
             plt.clf()
-            plt.plot(trainX[w, 2], trainY[w], 'k.', markersize=0.1)
+            plt.plot(x_train[w, 2], y_train[w], 'k.', markersize=0.1)
             if bad_data_stat is not None:
-                plt.plot(trainX[bad_data_stat, 2], trainY[bad_data_stat], 'r.')
+                plt.plot(x_train[bad_data_stat, 2], y_train[bad_data_stat],
+                         'r.')
             plt.xlabel('Day of Year')
             plt.ylabel('Total Solar Energy')
             plt.savefig(settings.OUTDIR + 'stat_raw_' + str(np.int(i)) + '.png')
     # Now delete the bad data that was compiled in a an array "bad_data"
-    trainX = np.delete(trainX, bad_data, axis=0)
-    trainY = np.delete(trainY, bad_data)
-    return trainX, trainY
+    x_train = np.delete(x_train, bad_data, axis=0)
+    y_train = np.delete(y_train, bad_data)
+    with open(settings.OUTDIR + 'bad_data.pickle', 'w') as f:
+        pickle.dump(bad_data, f)
+
+    return x_train, y_train
 
 
 def get_max_doy(doy, feature):

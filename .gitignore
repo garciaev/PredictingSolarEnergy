@@ -39,3 +39,13 @@ extra78/
 level2features.csv
 linear_reg_ensemble_submit.csv
 mean_ensemble_submit.csv
+final*png
+extra70/
+*take2*
+*jpeg
+*txt
+*png
+*pickle
+Data/train/*npz
+extra.py
+*csv

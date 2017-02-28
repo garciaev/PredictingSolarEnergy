@@ -28,7 +28,7 @@ Numerical weather forecasts with grid spacings of 10+ kilometers lack the resolu
 An XGBoost decision-tree model trained to predict solar energy using numerical
 weather predictions can be easily implemented in real time for a given solar energy general site. The model could be periodically updated with a longer time baseline, and site-specific weather information.
 
-A solar energy prediction models can also be useful for rooftop solar energy generation in conjunction with batteries. A virtual powerplant controlling a network of charged batteries linked to rooftop solar would likely find solar energy prediction useful to maximize revenue in sale of electricity to the grid.  
+Solar energy prediction models can also be useful for rooftop solar in conjunction with batteries. A virtual powerplant controlling a network of charged batteries linked to multiple rooftop solar sites would likely find solar energy prediction useful to maximize revenue in sale of electricity to the grid.  
  
 # Installation 
 1. Download the weather forecast files `gefs_test.tar.gz` (or `gefs_test.zip`) and `gefs_train.tar.gz` (or `gefs_train.zip`) from the Kaggle competition [data webpage](https://www.kaggle.com/c/ams-2014-solar-energy-prediction-contest/data).
